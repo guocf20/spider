@@ -8,5 +8,5 @@
 #define __MY_OPTION_H
 int insert_header_field(char buf[],char *content, char *type)
 {
-    
+    return 0;    
 }
