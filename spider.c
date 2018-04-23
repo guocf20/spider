@@ -8,6 +8,7 @@
 #include<netdb.h>
 #include<sys/socket.h>
 #include<string.h>
+#include<strings.h>
 #include<error.h>
 #include<sys/time.h>
 #include<unistd.h>
@@ -175,7 +176,8 @@ int main(int argc, char *argv[])
     char url_buf[1000]={0};
 
 //find url links
-    while ((c=find_str(q,strlen(html), url_start, url_start_len)) != NULL && q != NULL)
+    //while ((c=find_str(q,strlen(html), url_start, url_start_len)) != NULL && q != NULL)
+    while((c=strstr(q, url_start)) != NULL && q != NULL)
     {
         int i = 0;
         int j = 0;
@@ -184,11 +186,11 @@ int main(int argc, char *argv[])
             i++;
         }
         j = i;
-        while (*(c + i + 1+ url_start_len) != '>' && *(c + i + 1 + url_start_len) != '\0')
+        while (*(c + i + 1 + url_start_len) != '>' && *(c + i + 1 + url_start_len) != '\0' && *(c + i + 1 + url_start_len) != ' ')
         {
             i++;
         }
-        snprintf(url_buf, (i-j+1), "%s", (c+url_start_len + j + 1));
+        snprintf(url_buf, (i-j + 2), "%s", (c+url_start_len + j));
         printf("%s\n",url_buf);
         q = c+url_start_len + i;
     }
