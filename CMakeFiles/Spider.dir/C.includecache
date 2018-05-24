@@ -1,0 +1,34 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/spider/spider.c
+stdio.h
+-
+netdb.h
+-
+sys/socket.h
+-
+string.h
+-
+strings.h
+-
+error.h
+-
+sys/time.h
+-
+unistd.h
+-
+ctype.h
+-
+sys/socket.h
+-
+netinet/in.h
+-
+arpa/inet.h
+-
+

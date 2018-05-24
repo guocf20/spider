@@ -13,6 +13,12 @@
 #include<sys/time.h>
 #include<unistd.h>
 #include<ctype.h>
+     #include <sys/socket.h>
+       #include <netinet/in.h>
+       #include <arpa/inet.h>
+
+
+
 #define HEADER_MAX 4096
 #define HOST_MAX   100
 #define URL_MAX    1000
@@ -102,7 +108,7 @@ int main(int argc, char *argv[])
     memset(&hint,0,sizeof(hint));
     hint.ai_family=AF_INET;
     //instead of getaddrbyname
-    int i = getaddrinfo(argv[1],"http", &hint,&host);
+    int i = getaddrinfo(argv[1], "http", &hint,&host);
     if (i != 0)
     {
         printf("%s\n",gai_strerror(i));
@@ -120,6 +126,20 @@ int main(int argc, char *argv[])
     for(aip=host;aip != NULL; aip=aip->ai_next)
     {
         conn =  connect(http_client, (struct sockaddr *)aip->ai_addr,sizeof(struct sockaddr));
+
+
+        char buf[100] = {'\0'};
+        
+        struct sockaddr_in *sa;
+
+        sa = (struct sockaddr_in *)aip->ai_addr;
+        
+
+ printf("name: %s\nip:%s\n\n", aip->ai_canonname,   
+                inet_ntop(AF_INET, &sa->sin_addr.s_addr, buf, sizeof (buf)));  
+
+
+
         if (conn == 0)
         {
             break;
@@ -136,7 +156,7 @@ int main(int argc, char *argv[])
         printf("connect failed\n");
         return 1;
     }
-    config_recv_timeout(http_client, 2, 0);
+//    config_recv_timeout(http_client, 2, 0);
     //config_recv_buf_len(http_client, 1024);
     if (send(http_client, buf, strlen(buf),MSG_DONTWAIT)== -1)
     {
@@ -144,39 +164,45 @@ int main(int argc, char *argv[])
     }
     char rec[1000000];
     char html[1000000];
+    char buf[512];
     int j = 0;
     int k = 0;
     //recv data
-    while ((k = recv(http_client,rec,100000,0)) > 0)
-    {
-        j++;
-        //printf("down loading...%d\n", k);
-        strncat(html, rec, k);
-    }
-    char *cao=html;
+    recvfrom(http_client, buf, 511, MSG_PEEK, NULL, NULL);
 
-//judge status
-    if (memcmp(html, RESPONSE_1,strlen(RESPONSE_1)) == 0)
+    char *length = NULL;
+    length = strstr(buf, "Content-Length:");
+
+    int len = atoi(&length[strlen("Content-Length:")]);
+
+
+    while ((k = recv(http_client,rec,len,0)) > 0)
+    {
+        if(k == len)
+        {
+            break;
+        }
+        j++;
+    }
+    char *cao=rec;
+
+    if (memcmp(rec, RESPONSE_1,strlen(RESPONSE_1)) == 0)
     {
         printf("recv ok\n");
     }
-    else if (memcmp(html, RESPONSE_2,strlen(RESPONSE_2)) == 0)
+    else if (memcmp(rec, RESPONSE_2,strlen(RESPONSE_2)) == 0)
     {
         printf("forbidden \n");
     }
-    else if (memcmp(html,RESPONSE_3,strlen(RESPONSE_3)) == 0)
+    else if (memcmp(rec,RESPONSE_3,strlen(RESPONSE_3)) == 0)
     {
         printf("moved\n");
-        char *temp = find_str(cao,strlen(html),"Location:", 5);
-        printf("%s",temp);
     }
 
     char *c = NULL;
-    char *q = html;
+    char *q = rec;
     char url_buf[1000]={0};
-
-//find url links
-    //while ((c=find_str(q,strlen(html), url_start, url_start_len)) != NULL && q != NULL)
+    
     while((c=strstr(q, url_start)) != NULL && q != NULL)
     {
         int i = 0;
