@@ -107,11 +107,20 @@ int main(int argc, char *argv[])
     struct addrinfo hint;
     memset(&hint,0,sizeof(hint));
     hint.ai_family=AF_INET;
-    //instead of getaddrbyname
-    int i = getaddrinfo(argv[1], "http", &hint,&host);
+    int i = 0;
+    //instead of getaddrbynamea
+    { 
+        i = getaddrinfo(argv[1], "http", &hint,&host);
+    }
+/*
+    else
+    {
+        i = getaddrinfo(argv[1], "https", &hint,&host);
+    }
+*/
     if (i != 0)
     {
-        printf("%s\n",gai_strerror(i));
+        printf(" error %s\n",gai_strerror(i));
         return 1;
     }
     int http_client = socket(AF_INET, SOCK_STREAM, 0);
@@ -173,15 +182,18 @@ int main(int argc, char *argv[])
     char *length = NULL;
     length = strstr(buf, "Content-Length:");
 
+    printf("header = %s\n", buf);
+
     int len = atoi(&length[strlen("Content-Length:")]);
 
+    printf("content-length = %d\n", len);
 
-    while ((k = recv(http_client,rec,len,0)) > 0)
+    int left = len;
+    while (left >  0)
     {
-        if(k == len)
-        {
-            break;
-        }
+        k = recv(http_client,rec,len,0);
+        printf("left %d %d\n", left, k);
+        left -= k;
         j++;
     }
     char *cao=rec;
