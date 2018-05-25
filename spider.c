@@ -16,7 +16,7 @@
      #include <sys/socket.h>
        #include <netinet/in.h>
        #include <arpa/inet.h>
-
+#include<stdbool.h>
 
 
 #define HEADER_MAX 4096
@@ -177,21 +177,41 @@ int main(int argc, char *argv[])
     int j = 0;
     int k = 0;
     //recv data
-    recvfrom(http_client, buf, 511, MSG_PEEK, NULL, NULL);
+    recvfrom(http_client, buf, 1024, MSG_PEEK, NULL, NULL);
 
     char *length = NULL;
     length = strstr(buf, "Content-Length:");
 
-    printf("header = %s\n", buf);
+    int len = 0;
+    bool use_content = false;
+    if(length != NULL)
+    {
+        use_content = true;
+        len = atoi(&length[strlen("Content-Length:")]);
+        if(len < strlen(buf))
+        {
+            len = strlen(buf);
+        }
+    }
 
-    int len = atoi(&length[strlen("Content-Length:")]);
-
-    printf("content-length = %d\n", len);
+    printf("content-length = %d %s \n", len, use_content == true?"true":"false");
 
     int left = len;
-    while (left >  0)
+    while (left >  0 || use_content == false)
     {
-        k = recv(http_client,rec,len,0);
+        if(use_content == true)
+        {
+           k = recv(http_client,rec,len, 0);
+        }
+        else 
+        {
+           k = recv(http_client,rec,512,0);
+        }
+        if(k <= 0)
+        {
+            printf("left %d %d\n", left, k);
+            break;
+        }
         printf("left %d %d\n", left, k);
         left -= k;
         j++;
@@ -208,7 +228,7 @@ int main(int argc, char *argv[])
     }
     else if (memcmp(rec,RESPONSE_3,strlen(RESPONSE_3)) == 0)
     {
-        printf("moved\n");
+        printf("moved******\n");
     }
 
     char *c = NULL;
