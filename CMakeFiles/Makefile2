@@ -60,39 +60,39 @@ CMAKE_SOURCE_DIR = /home/spider
 CMAKE_BINARY_DIR = /home/spider
 
 #=============================================================================
-# Target rules for target CMakeFiles/Spider.dir
+# Target rules for target CMakeFiles/spider.dir
 
 # All Build rule for target.
-CMakeFiles/Spider.dir/all:
-	$(MAKE) -f CMakeFiles/Spider.dir/build.make CMakeFiles/Spider.dir/depend
-	$(MAKE) -f CMakeFiles/Spider.dir/build.make CMakeFiles/Spider.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/spider/CMakeFiles --progress-num=1,2 "Built target Spider"
-.PHONY : CMakeFiles/Spider.dir/all
+CMakeFiles/spider.dir/all:
+	$(MAKE) -f CMakeFiles/spider.dir/build.make CMakeFiles/spider.dir/depend
+	$(MAKE) -f CMakeFiles/spider.dir/build.make CMakeFiles/spider.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/spider/CMakeFiles --progress-num=1,2 "Built target spider"
+.PHONY : CMakeFiles/spider.dir/all
 
 # Include target in all.
-all: CMakeFiles/Spider.dir/all
+all: CMakeFiles/spider.dir/all
 
 .PHONY : all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/Spider.dir/rule: cmake_check_build_system
+CMakeFiles/spider.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/spider/CMakeFiles 2
-	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/Spider.dir/all
+	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/spider.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/spider/CMakeFiles 0
-.PHONY : CMakeFiles/Spider.dir/rule
+.PHONY : CMakeFiles/spider.dir/rule
 
 # Convenience name for target.
-Spider: CMakeFiles/Spider.dir/rule
+spider: CMakeFiles/spider.dir/rule
 
-.PHONY : Spider
-
-# clean rule for target.
-CMakeFiles/Spider.dir/clean:
-	$(MAKE) -f CMakeFiles/Spider.dir/build.make CMakeFiles/Spider.dir/clean
-.PHONY : CMakeFiles/Spider.dir/clean
+.PHONY : spider
 
 # clean rule for target.
-clean: CMakeFiles/Spider.dir/clean
+CMakeFiles/spider.dir/clean:
+	$(MAKE) -f CMakeFiles/spider.dir/build.make CMakeFiles/spider.dir/clean
+.PHONY : CMakeFiles/spider.dir/clean
+
+# clean rule for target.
+clean: CMakeFiles/spider.dir/clean
 
 .PHONY : clean
 

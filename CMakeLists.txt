@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 2.6)
+add_definitions("-g")
 link_libraries(ssl)
-project(Spider)
-add_executable(Spider spider.c)
+project(spider)
+add_executable(spider spider.c)

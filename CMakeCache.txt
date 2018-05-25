@@ -133,7 +133,7 @@ CMAKE_OBJCOPY:FILEPATH=/usr/bin/objcopy
 CMAKE_OBJDUMP:FILEPATH=/usr/bin/objdump
 
 //Value Computed by CMake
-CMAKE_PROJECT_NAME:STATIC=Spider
+CMAKE_PROJECT_NAME:STATIC=spider
 
 //Path to a program.
 CMAKE_RANLIB:FILEPATH=/usr/bin/ranlib
@@ -199,6 +199,12 @@ Spider_BINARY_DIR:STATIC=/home/spider
 
 //Value Computed by CMake
 Spider_SOURCE_DIR:STATIC=/home/spider
+
+//Value Computed by CMake
+spider_BINARY_DIR:STATIC=/home/spider
+
+//Value Computed by CMake
+spider_SOURCE_DIR:STATIC=/home/spider
 
 
 ########################

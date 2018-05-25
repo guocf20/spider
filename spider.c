@@ -13,9 +13,9 @@
 #include<sys/time.h>
 #include<unistd.h>
 #include<ctype.h>
-     #include <sys/socket.h>
-       #include <netinet/in.h>
-       #include <arpa/inet.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 #include<stdbool.h>
 #include <openssl/crypto.h>
 #include <openssl/ssl.h>
@@ -40,24 +40,6 @@ char url_start_len = sizeof(url_start)/sizeof(url_start[0]) - 1;
 #define RESPONSE_1  "HTTP/1.1 200 OK"
 #define RESPONSE_2  "HTTP/1.1 403"
 #define RESPONSE_3  "HTTP/1.1 301"
-char *find_str(char *str1, int len1, char *str2, int len2)
-{
-    if (len1 < len2)
-    {   
-        return NULL;
-    }   
-    int j=0;
-    while (str1 != '\0' && j < len1 - len2)
-    {   
-        if (memcmp(str1,str2, len2) == 0)
-        {
-            return (str1);
-        }
-        str1++;
-        j++;
-    }   
-    return NULL;
-}
 
 
 int config_recv_buf_len(int socket, int len)
@@ -84,6 +66,102 @@ int config_recv_timeout(int socket, int sec, int usec)
 
 bool is_https = false;
 
+char *get_src_path(char *url)
+{
+     char host[128] = {'\0'};
+     char *p = NULL;
+     char *q = NULL;
+     p = strstr(url, "//");
+     if (p == NULL)
+     {
+         q = strstr(url, "/");
+         if (q == NULL)
+         {
+             return strdup("/");
+         }
+         else
+         {
+             return strdup(q);
+         }
+     }
+     else
+     {
+         q = strstr(p + 2, "/");
+         if(q == NULL)
+         {
+              return strdup("/");
+         }
+         else
+         {
+             return strdup(q);
+         }
+     }
+}
+
+
+char *get_host(char *url)
+{
+     char host[128] = {'\0'};
+     char *p = NULL;
+     char *q = NULL;
+     p = strstr(url, "//");
+     if (p == NULL)
+     {
+         q = strstr(url, "/");
+         if (q == NULL)
+         {
+             return strdup(url);
+         }
+         else
+         {
+             memcpy(host, url, q - url);
+             return strdup(host);
+         }
+     }
+     else
+     {
+         q = strstr(p + 2, "/");
+         if(q == NULL)
+         {
+              return strdup(p + 2);
+         }
+         else
+         {
+             memcpy(host, p + 2, q - p - 2);
+             return strdup(host);
+    
+         }
+     }
+}
+
+
+char init_header(char *url)
+{
+    char host[HOST_MAX] = {'\0'};
+
+    int header_len = sizeof(buf)/sizeof(buf[0]);
+
+    char *src = get_src_path(url);
+    char *host_name = get_host(url);
+    char cur_entry[128] = {'\0'};
+
+    strncat(host, "Host:", header_len);
+    strncat(host, host_name, header_len);
+    strncat(host, "\r\n", sizeof("\r\n"));
+
+
+    snprintf(cur_entry, 127, "GET %s HTTP/1.1\r\n", src);
+
+    strncat(buf, cur_entry, header_len);
+    strncat(buf, "Accept: */*\r\n", header_len);
+    strncat(buf, host, header_len); 
+    strncat(buf, "User-Agent: Wget/1.13.4 (linux-gnu)\r\n", header_len);
+    strncat(buf, "Connection: Keep-Alive\r\n\r\n",header_len);
+    free(src);
+    free(host_name);
+    return; 
+}
+
 int main(int argc, char *argv[])
 {
     if (strlen(argv[1]) > HOST_LEFT)
@@ -91,40 +169,26 @@ int main(int argc, char *argv[])
         printf("error host is too long %s\n", argv[1]);
         return 1;
     }
-    //init header with argv[1]
-    strncat(host, "Host: ", HOST_MAX);
-    strncat(host, argv[1], HOST_MAX);
-    strncat(host,"\r\n", HOST_MAX);
-    int header_len = sizeof(buf)/sizeof(buf[0]);
-    strncat(buf, "GET / HTTP/1.1\r\n", header_len);
-    strncat(buf, "Accept: */*\r\n", header_len);
-    strncat(buf, "User-Agent: Wget/1.13.4 (linux-gnu)\r\n", header_len);
-    strncat(buf, host, header_len);
-    strncat(buf, "Connection: Keep-Alive\r\n\r\n",header_len);
-
-     printf("%s\n", buf);
+    init_header(argv[1]);
+    printf("%s\n", buf);
     
     struct addrinfo *host=NULL;
     struct addrinfo *aip=NULL;
     struct addrinfo hint;
     memset(&hint,0,sizeof(hint));
     hint.ai_family=AF_INET;
+    char *hostname = get_host(argv[1]);
+    
     int i = 0;
     //instead of getaddrbynamea
     if(strstr(argv[1], "https://") != NULL)
     {
-        getaddrinfo(&argv[1][8], "https", &hint, &host);
+        getaddrinfo(hostname, "https", &hint, &host);
     }
     else
     { 
-        i = getaddrinfo(argv[1], "http", &hint,&host);
+        i = getaddrinfo(hostname, "http", &hint,&host);
     }
-/*
-    else
-    {
-        i = getaddrinfo(argv[1], "https", &hint,&host);
-    }
-*/
     if (i != 0)
     {
         printf(" error %s\n",gai_strerror(i));

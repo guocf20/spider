@@ -111,17 +111,17 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named Spider
+# Target rules for targets named spider
 
 # Build rule for target.
-Spider: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 Spider
-.PHONY : Spider
+spider: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 spider
+.PHONY : spider
 
 # fast build rule for target.
-Spider/fast:
-	$(MAKE) -f CMakeFiles/Spider.dir/build.make CMakeFiles/Spider.dir/build
-.PHONY : Spider/fast
+spider/fast:
+	$(MAKE) -f CMakeFiles/spider.dir/build.make CMakeFiles/spider.dir/build
+.PHONY : spider/fast
 
 spider.o: spider.c.o
 
@@ -129,7 +129,7 @@ spider.o: spider.c.o
 
 # target to build an object file
 spider.c.o:
-	$(MAKE) -f CMakeFiles/Spider.dir/build.make CMakeFiles/Spider.dir/spider.c.o
+	$(MAKE) -f CMakeFiles/spider.dir/build.make CMakeFiles/spider.dir/spider.c.o
 .PHONY : spider.c.o
 
 spider.i: spider.c.i
@@ -138,7 +138,7 @@ spider.i: spider.c.i
 
 # target to preprocess a source file
 spider.c.i:
-	$(MAKE) -f CMakeFiles/Spider.dir/build.make CMakeFiles/Spider.dir/spider.c.i
+	$(MAKE) -f CMakeFiles/spider.dir/build.make CMakeFiles/spider.dir/spider.c.i
 .PHONY : spider.c.i
 
 spider.s: spider.c.s
@@ -147,7 +147,7 @@ spider.s: spider.c.s
 
 # target to generate assembly for a file
 spider.c.s:
-	$(MAKE) -f CMakeFiles/Spider.dir/build.make CMakeFiles/Spider.dir/spider.c.s
+	$(MAKE) -f CMakeFiles/spider.dir/build.make CMakeFiles/spider.dir/spider.c.s
 .PHONY : spider.c.s
 
 # Help Target
@@ -158,7 +158,7 @@ help:
 	@echo "... depend"
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
-	@echo "... Spider"
+	@echo "... spider"
 	@echo "... spider.o"
 	@echo "... spider.i"
 	@echo "... spider.s"

@@ -1,0 +1,1 @@
+/usr/bin/cc   -rdynamic CMakeFiles/spider.dir/spider.c.o  -o spider -lssl 
