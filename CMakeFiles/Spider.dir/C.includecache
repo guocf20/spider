@@ -33,4 +33,12 @@ arpa/inet.h
 -
 stdbool.h
 -
+openssl/crypto.h
+-
+openssl/ssl.h
+-
+openssl/err.h
+-
+openssl/rand.h
+-
 

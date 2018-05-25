@@ -17,6 +17,10 @@
        #include <netinet/in.h>
        #include <arpa/inet.h>
 #include<stdbool.h>
+#include <openssl/crypto.h>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+#include <openssl/rand.h>
 
 
 #define HEADER_MAX 4096
@@ -78,14 +82,10 @@ int config_recv_timeout(int socket, int sec, int usec)
     return 0;
 }
 
+bool is_https = false;
 
 int main(int argc, char *argv[])
 {
-    if (argc != 2)
-    {
-        printf("usage: ./getaddr url\n");
-        return 1;
-    }
     if (strlen(argv[1]) > HOST_LEFT)
     {
         printf("error host is too long %s\n", argv[1]);
@@ -101,6 +101,8 @@ int main(int argc, char *argv[])
     strncat(buf, "User-Agent: Wget/1.13.4 (linux-gnu)\r\n", header_len);
     strncat(buf, host, header_len);
     strncat(buf, "Connection: Keep-Alive\r\n\r\n",header_len);
+
+     printf("%s\n", buf);
     
     struct addrinfo *host=NULL;
     struct addrinfo *aip=NULL;
@@ -109,6 +111,11 @@ int main(int argc, char *argv[])
     hint.ai_family=AF_INET;
     int i = 0;
     //instead of getaddrbynamea
+    if(strstr(argv[1], "https://") != NULL)
+    {
+        getaddrinfo(&argv[1][8], "https", &hint, &host);
+    }
+    else
     { 
         i = getaddrinfo(argv[1], "http", &hint,&host);
     }
@@ -131,11 +138,14 @@ int main(int argc, char *argv[])
 
     int conn = -1;
 
+    SSL *ssl;
+    SSL_CTX *ctx;
+
     //get available {ip port} to connect
     for(aip=host;aip != NULL; aip=aip->ai_next)
     {
         conn =  connect(http_client, (struct sockaddr *)aip->ai_addr,sizeof(struct sockaddr));
-
+     
 
         char buf[100] = {'\0'};
         
@@ -144,13 +154,14 @@ int main(int argc, char *argv[])
         sa = (struct sockaddr_in *)aip->ai_addr;
         
 
- printf("name: %s\nip:%s\n\n", aip->ai_canonname,   
+        printf("name: %s\nip:%s\n\n", aip->ai_canonname,   
                 inet_ntop(AF_INET, &sa->sin_addr.s_addr, buf, sizeof (buf)));  
 
 
 
-        if (conn == 0)
+        if (conn ==  0)
         {
+            
             break;
         }
         else
@@ -165,57 +176,103 @@ int main(int argc, char *argv[])
         printf("connect failed\n");
         return 1;
     }
-//    config_recv_timeout(http_client, 2, 0);
-    //config_recv_buf_len(http_client, 1024);
-    if (send(http_client, buf, strlen(buf),MSG_DONTWAIT)== -1)
+    if(strstr(argv[2], "https") != NULL)
     {
-        perror("send");
+        is_https = true;
+    }
+
+    if(is_https == true)  
+    {
+        SSL_library_init();
+        SSL_load_error_strings();
+        ctx = SSL_CTX_new(SSLv23_client_method());
+    
+        if(ctx == NULL)
+        {
+           exit(1);
+        }
+        ssl = SSL_new(ctx);
+        int ret = SSL_set_fd(ssl, http_client);
+        ret = SSL_connect(ssl);
+    }
+
+    config_recv_timeout(http_client, 2, 0);
+    //config_recv_buf_len(http_client, 1024);
+    if(is_https == true)
+    {
+         printf("write %s\n", buf);
+         SSL_write(ssl, buf, strlen(buf));
+    }
+    else
+    {
+         printf("write %s\n", buf);
+        if (send(http_client, buf, strlen(buf),MSG_DONTWAIT)== -1)
+        {
+            perror("send");
+        }
     }
     char rec[1000000];
     char html[1000000];
     char buf[512];
     int j = 0;
     int k = 0;
-    //recv data
-    recvfrom(http_client, buf, 1024, MSG_PEEK, NULL, NULL);
-
-    char *length = NULL;
-    length = strstr(buf, "Content-Length:");
-
-    int len = 0;
-    bool use_content = false;
-    if(length != NULL)
+    
+    if(is_https == true)
+    
     {
-        use_content = true;
-        len = atoi(&length[strlen("Content-Length:")]);
-        if(len < strlen(buf))
+        int ret = SSL_read(ssl,rec, 256);
+        while(ret > 0)
         {
-            len = strlen(buf);
+            strcat(html, rec);
+            memset(rec, '\0', sizeof(rec));
+            ret =SSL_read(ssl, rec, 256);
         }
+        printf("%s\n", html);
+        return 0;
     }
-
-    printf("content-length = %d %s \n", len, use_content == true?"true":"false");
-
-    int left = len;
-    while (left >  0 || use_content == false)
+    else
     {
-        if(use_content == true)
+        recvfrom(http_client, buf, 1024, MSG_PEEK, NULL, NULL);
+
+        char *length = NULL;
+        length = strstr(buf, "Content-Length:");
+
+        int len = 0;
+        bool use_content = false;
+        if(length != NULL)
         {
-           k = recv(http_client,rec,len, 0);
+            use_content = true;
+            len = atoi(&length[strlen("Content-Length:")]);
+            if(len < strlen(buf))
+            {
+               len = strlen(buf);
+            } 
         }
-        else 
+
+        printf("content-length = %d %s \n", len, use_content == true?"true":"false");
+
+        int left = len;
+        while (left >  0 || use_content == false)
         {
-           k = recv(http_client,rec,512,0);
-        }
-        if(k <= 0)
-        {
+            if(use_content == true)
+            {
+               k = recv(http_client,rec,len, 0);
+            }
+            else 
+            {
+               k = recv(http_client,rec,256,0);
+            }
+            if(k <= 0)
+            {
+                perror("recv");
+                printf("end left %d %d\n", left, k);
+                break;
+            }
             printf("left %d %d\n", left, k);
-            break;
-        }
-        printf("left %d %d\n", left, k);
-        left -= k;
-        j++;
-    }
+            left -= k;
+            j++;
+         }
+     }
     char *cao=rec;
 
     if (memcmp(rec, RESPONSE_1,strlen(RESPONSE_1)) == 0)
