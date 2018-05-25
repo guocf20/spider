@@ -21,6 +21,7 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include <openssl/rand.h>
+#include "zlist.h"
 
 
 #define HEADER_MAX 4096
@@ -170,6 +171,11 @@ int main(int argc, char *argv[])
         return 1;
     }
     init_header(argv[1]);
+
+    char *entry = strdup(argv[1]);
+    zlist_t *queue = zlist_new ();
+    zlist_append(queue, entry);
+
     printf("%s\n", buf);
     
     struct addrinfo *host=NULL;
@@ -284,15 +290,14 @@ int main(int argc, char *argv[])
     if(is_https == true)
     
     {
-        int ret = SSL_read(ssl,rec, 256);
+        int ret = SSL_read(ssl,html, 256);
         while(ret > 0)
         {
-            strcat(html, rec);
-            memset(rec, '\0', sizeof(rec));
-            ret =SSL_read(ssl, rec, 256);
+            strcat(rec, html);
+            memset(html, '\0', sizeof(rec));
+            ret =SSL_read(ssl, html, 256);
         }
-        printf("%s\n", html);
-        return 0;
+        printf("%s\n", rec);
     }
     else
     {
@@ -370,9 +375,18 @@ int main(int argc, char *argv[])
             i++;
         }
         snprintf(url_buf, (i-j + 2), "%s", (c+url_start_len + j));
-        printf("%s\n",url_buf);
+        entry = strdup(url_buf) ;
+        zlist_append(queue, entry);      
         q = c+url_start_len + i;
     }
     close(http_client);
-    return 0; 
+    void *item = NULL;
+    printf("...................\n");
+    item = zlist_first(queue);
+    while(item != NULL)
+    {
+        char *p = (char *)item;
+        printf("%s\n", p);
+        item = zlist_next(queue); 
+    } 
 }
