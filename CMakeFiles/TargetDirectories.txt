@@ -1,3 +1,0 @@
-/home/spider/CMakeFiles/rebuild_cache.dir
-/home/spider/CMakeFiles/edit_cache.dir
-/home/spider/CMakeFiles/spider.dir
